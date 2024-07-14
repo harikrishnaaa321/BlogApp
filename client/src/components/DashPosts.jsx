@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
+import { Button } from "flowbite-react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { Modal } from "flowbite-react";
 import { Table } from "flowbite-react";
-
+import { getPosts } from "../../../api/controllers/post.controller";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
-  const [userPosts, setUserPosts] = useState([]);
-  console.log(userPosts);
 
+  const [userPosts, setUserPosts] = useState([]);
+
+  const [showMore, setShowMore] = useState(true);
+
+  const [showModal,setShowModal] = useState(false);
+  const [postIdToDelete,setPostIdToDelete] = useState('')
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -15,6 +22,9 @@ export default function DashPosts() {
         const data = await res.json();
         if (res.ok) {
           setUserPosts(data.posts);
+          if (data.posts.length < 9) {
+            setShowMore(false);
+          }
         }
       } catch (error) {
         console.log(error.message);
@@ -25,6 +35,42 @@ export default function DashPosts() {
     }
   }, [currentUser._id]);
 
+  const handleShowMore = async () => {
+    const startIndex = userPosts.length;
+    try {
+      const res = await fetch(
+        `/api/post/getposts?userId=${currentUser._id}%startIndex=${startIndex}`
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setUserPosts((prev) => [...prev, ...data.posts]);
+        if (data.posts.length < 9) {
+          setShowMore(false);
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const handleDeletePost = async()=>{
+setShowModal(false)
+try{
+const res  = await fetch(`/api/post/deletepost/${postIdToDelete}/${currentUser._id}`,{
+  method:'DELETE',
+}
+)
+const data = await res.json()
+ if(!res.ok){
+  console.log(data.message);
+ }
+ else{
+  setUserPosts((prev)=>prev.filter((post)=>post._id!==postIdToDelete))
+ }
+}catch(error){
+console.log(error.message);
+}
+  }
   return (
     <div className="table-auto overflow-x-auto md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
       {currentUser.isAdmin && userPosts.length > 0 ? (
@@ -42,8 +88,13 @@ export default function DashPosts() {
             </Table.Head>
             <Table.Body className="divide-y">
               {userPosts.map((post) => (
-                <Table.Row key={post._id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                  <Table.Cell>{new Date(post.updatedAt).toLocaleDateString()}</Table.Cell>
+                <Table.Row
+                  key={post._id}
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <Table.Cell>
+                    {new Date(post.updatedAt).toLocaleDateString()}
+                  </Table.Cell>
                   <Table.Cell>
                     <Link to={`/post/${post.slug}`}>
                       <img
@@ -63,12 +114,19 @@ export default function DashPosts() {
                   </Table.Cell>
                   <Table.Cell>{post.category}</Table.Cell>
                   <Table.Cell>
-                    <span className="font-medium text-red-500 hover:underline cursor-pointer">
+                    <span onClick={()=>{
+                      setShowModal(true);
+                      setPostIdToDelete(post._id)
+
+                    }}className="font-medium text-red-500 hover:underline cursor-pointer">
                       Delete
                     </span>
                   </Table.Cell>
                   <Table.Cell>
-                    <Link className="text-teal-500" to={`/updatepost/${post._id}`}>
+                    <Link
+                      className="text-teal-500"
+                      to={`/updatepost/${post._id}`}
+                    >
                       <span>edit</span>
                     </Link>
                   </Table.Cell>
@@ -76,10 +134,43 @@ export default function DashPosts() {
               ))}
             </Table.Body>
           </Table>
+          {showMore && (
+            <button
+              onClick={handleShowMore}
+              className="w-full text-teal-500 self-center text-sm py-7"
+            >
+              show more
+            </button>
+          )}
         </>
       ) : (
         <p>you have no posts yet</p>
       )}
+
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
+            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+              are you sure{" "}
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleDeletePost}>
+                yes, i'm sure{" "}
+              </Button>
+              <Button color="gray" onClick={() => setShowModal(false)}>
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
