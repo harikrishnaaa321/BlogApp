@@ -1,33 +1,62 @@
-import {createSlice} from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  currentUser:null,
-  error:null,
-  loading:false
-}
+  currentUser: null,
+  error: null,
+  loading: false,
+};
 
 const userSlice = createSlice({
-  name:'user',
+  name: "user",
   initialState,
-  reducers:{
-    signInStart:(state)=>{
-      state.loading=true,
-      state.error = null;
+  reducers: {
+    signInStart: (state) => {
+      (state.loading = true), (state.error = null);
     },
-    signInSuccess:(state,action)=>{
+    signInSuccess: (state, action) => {
       state.currentUser = action.payload;
       state.loading = false;
-      state.error = null
+      state.error = null;
     },
-    signInFailure:(state,action)=>{
+    signInFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    updateStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    updateSuccess: (state, action) => {
+      state.currentUser = action.payload;
+      state.loading = false;
+      state.error = null;
+    },
+    updateFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
 
+    deleteUserStart:(state)=>{
+      state.loading = true;
+      state.error = null;
+    },
+    deleteUserSuccess:(state)=>{
+      state.currentUser = null,
+      state.loading = false;
+      state.error = null;
+    },
+    deleteUserFailure:(state)=>{
       state.loading = false;
       state.error = action.payload
     },
+    signoutSuccess:(state)=>{
+      state.currentUser = null;
+      state.error = null;
+      state.loading = false;
+    }
+  },
+});
 
-  }
-})
+export const { signInStart, signInSuccess, signInFailure ,updateFailure,updateStart,updateSuccess,deleteUserStart,deleteUserSuccess,deleteUserFailure,signoutSuccess} = userSlice.actions;
 
-export const {signInStart,signInSuccess,signInFailure} = userSlice.actions;
-
-export default userSlice.reducer
+export default userSlice.reducer;

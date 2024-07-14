@@ -1,19 +1,39 @@
 import { Avatar, Dropdown, Navbar } from "flowbite-react";
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { TextInput } from "flowbite-react";
 import { AiOutlineSearch } from "react-icons/ai";
-import { FaMoon,FaSun
-} from "react-icons/fa";
+import { FaMoon, FaSun } from "react-icons/fa";
 import { Button } from "flowbite-react";
-import { useSelector,useDispatch } from "react-redux";
-import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../redux/theme/themeSlice";
+import { signoutSuccess } from "../redux/user/userSlice";
+
 const Header = () => {
-  const path = useLocation().pathname
-  const dispatch = useDispatch()
+  const path = useLocation().pathname;
+  const navigate = useNavigate(); // Add useNavigate hook
+  const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
-  const {theme} = useSelector((state)=>state.theme)
+  const { theme } = useSelector((state) => state.theme);
+
+  const handleSignOut = async () => {
+    try {
+      const res = await fetch("/api/user/signout", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data.message);
+      } else {
+        dispatch(signoutSuccess());
+        navigate("/signin"); // Redirect to sign-in page
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
   return (
     <Navbar className="border-b-2">
       <Link
@@ -40,28 +60,37 @@ const Header = () => {
       </Button>
 
       <div className="flex gap-2 md:order-2">
-        <Button className="w-12 h-10 hidden sm:inline" color="gray" pill onClick={()=>dispatch(toggleTheme())}>
-          {theme==='light'?<FaSun/>:<FaMoon/>}
+        <Button
+          className="w-12 h-10 hidden sm:inline"
+          color="gray"
+          pill
+          onClick={() => dispatch(toggleTheme())}
+        >
+          {theme === "light" ? <FaSun /> : <FaMoon />}
           <FaMoon />
         </Button>
         {currentUser ? (
-          <Dropdown arrowIcon={false}
-          inline label={<Avatar alt='user' img={currentUser.profilePic} rounded />
-        }>
-<Dropdown.Header>
-  <span className="block text-sm">@{currentUser.username}</span>
-  <span className="block text-sm font-medium truncate">{currentUser.email}</span>
-</Dropdown.Header>
-<Link to={'/dashboard?tab=profile'}>
-<Dropdown.Item>profile</Dropdown.Item>
-</Link>
-<Dropdown.Divider/>
-<Dropdown.Item>sign out</Dropdown.Item>
+          <Dropdown
+            arrowIcon={false}
+            inline
+            label={<Avatar alt="user" img={currentUser.profilePic} rounded />}
+          >
+            <Dropdown.Header>
+              <span className="block text-sm">@{currentUser.username}</span>
+              <span className="block text-sm font-medium truncate">
+                {currentUser.email}
+              </span>
+            </Dropdown.Header>
+            <Link to={"/dashboard?tab=profile"}>
+              <Dropdown.Item>Profile</Dropdown.Item>
+            </Link>
+            <Dropdown.Divider />
+            <Dropdown.Item onClick={handleSignOut}>Sign out</Dropdown.Item>
           </Dropdown>
         ) : (
           <Link to="/signin">
             <Button gradientDuoTone="purpleToBlue" outline>
-              sign in
+              Sign in
             </Button>
           </Link>
         )}
