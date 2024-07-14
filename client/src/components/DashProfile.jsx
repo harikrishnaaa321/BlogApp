@@ -11,27 +11,28 @@ import {
 } from "firebase/storage";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import {HiOutlineExclamationCircle} from 'react-icons/hi'
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 import {
   updateFailure,
   updateStart,
   updateSuccess,
   deleteUserStart,
   deleteUserSuccess,
-  deleteUserFailure,signoutSuccess
+  deleteUserFailure,
+  signoutSuccess,
 } from "../redux/user/userSlice";
 import { Link } from "react-router-dom";
 
 const DashProfile = () => {
-  const { currentUser,error,loading } = useSelector((state) => state.user);
+  const { currentUser, error, loading } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const [imageFile, setImageFile] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
   const [imageFileUploading, setImageFileUploading] = useState(false);
-  const [showModal,setShowModal] = useState(false)
-  const [updateUserError,setUpdateUserError] = useState(null)
+  const [showModal, setShowModal] = useState(false);
+  const [updateUserError, setUpdateUserError] = useState(null);
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const filePickerRef = useRef();
   const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
@@ -89,76 +90,73 @@ const DashProfile = () => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSignOut = async ()=>{
-    try{
-const res = await fetch('/api/user/signout',{
-  method:'POST',
-})
+  const handleSignOut = async () => {
+    try {
+      const res = await fetch("/api/user/signout", {
+        method: "POST",
+      });
 
-const data = await res.json();
-if(!res.ok){
-  console.log(data.message);
-}
-else{
-dispatch(signoutSuccess())
-}
-    }catch(error){
-
-    }
-  }
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data.message);
+      } else {
+        dispatch(signoutSuccess());
+      }
+    } catch (error) {}
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUpdateUserError(null);
-    setUpdateUserSuccess(null)
+    setUpdateUserSuccess(null);
     if (Object.keys(formData).length === 0) {
-      setUpdateUserSuccess('no chnages made')
+      setUpdateUserSuccess("no chnages made");
       return;
     }
 
     if (imageFileUploading) {
-      setUpdateUserError('please wait for image to upload')
+      setUpdateUserError("please wait for image to upload");
       return;
     }
 
     try {
       dispatch(updateStart());
       const res = await fetch(`api/user/update/${currentUser._id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          "Content-Type": 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
       if (!res.ok) {
         dispatch(updateFailure(data.message));
-        setUpdateUserError(data.message)
+        setUpdateUserError(data.message);
       } else {
         dispatch(updateSuccess(data));
         setUpdateUserSuccess("User's profile updated successfully");
       }
     } catch (error) {
       dispatch(updateFailure(error.message));
-      setUpdateUserError(error.message)
+      setUpdateUserError(error.message);
     }
   };
-const handleDeleteUser = async(e)=>{
-setShowModal(false);
-try{
-dispatch(deleteUserStart());
-const res = await fetch(`/api/user/delete/${currentUser._id}`,{
-  method:'DELETE',
-})
-const data = await res.json()
-if(!res.ok){
-  dispatch(deleteUserFailure(data.message))
-}else{
-  dispatch(deleteUserSuccess(data))
-}
-}catch(error){
-dispatch(deleteUserFailure(error.message))
-}
-}
+  const handleDeleteUser = async (e) => {
+    setShowModal(false);
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        dispatch(deleteUserFailure(data.message));
+      } else {
+        dispatch(deleteUserSuccess(data));
+      }
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
+    }
+  };
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
       <h1 className="my-7 text-center font-semibold text-3xl">Profile</h1>
@@ -226,53 +224,76 @@ dispatch(deleteUserFailure(error.message))
           placeholder="password"
           onChange={handleChange}
         />
-        <Button type="submit" gradientDuoTone="purpleToBlue" outline disabled={loading || imageFileUploading}>
-          {loading?'loading..':'Save Changes'}
+        <Button
+          type="submit"
+          gradientDuoTone="purpleToBlue"
+          outline
+          disabled={loading || imageFileUploading}
+        >
+          {loading ? "loading.." : "Save Changes"}
         </Button>
-        {
-          currentUser.isAdmin &&(
-           <Link to={'/createpost'}>
-            <Button type='button' gradientDuoTone='purpleToPink' className="w-full">
+        {currentUser.isAdmin && (
+          <Link to={"/createpost"}>
+            <Button
+              type="button"
+              gradientDuoTone="purpleToPink"
+              className="w-full"
+            >
               create a post
-              </Button> 
-           </Link>
-          )
-        }
+            </Button>
+          </Link>
+        )}
       </form>
 
       <div className="text-red-500 flex justify-between mt-5">
-        <span  onClick={()=>setShowModal(true)}className="cursor-pointer">Delete Account</span>
-        <span  onClick={handleSignOut}className="cursor-pointer">Sign Out</span>
+        <span onClick={() => setShowModal(true)} className="cursor-pointer">
+          Delete Account
+        </span>
+        <span onClick={handleSignOut} className="cursor-pointer">
+          Sign Out
+        </span>
       </div>
       {updateUserSuccess && (
-        <Alert color='success' className='mt-5'>{updateUserSuccess}</Alert>
+        <Alert color="success" className="mt-5">
+          {updateUserSuccess}
+        </Alert>
       )}
-      {
-        updateUserError&&(
-          <Alert color='failure' className="mt-5">{updateUserError}</Alert>
-        )
-      }
+      {updateUserError && (
+        <Alert color="failure" className="mt-5">
+          {updateUserError}
+        </Alert>
+      )}
 
-      {
-       error&&(
-          <Alert color='failure' className="mt-5">{error}</Alert>
-        )
-      }
+      {error && (
+        <Alert color="failure" className="mt-5">
+          {error}
+        </Alert>
+      )}
 
-      <Modal show={showModal} onClose={()=>setShowModal(false)} popup size='md'>
-
-        <Modal.Header/>
+      <Modal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
         <Modal.Body>
           <div className="text-center">
-            <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto"/>
-            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">are you sure </h3>
+            <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
+            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+              are you sure{" "}
+            </h3>
             <div className="flex justify-center gap-4">
-              <Button color='failure' onClick={handleDeleteUser}>yes, i'm  sure </Button>
-              <Button color='gray' onClick={()=>setShowModal(false)}>No, cancel</Button>
+              <Button color="failure" onClick={handleDeleteUser}>
+                yes, i'm sure{" "}
+              </Button>
+              <Button color="gray" onClick={() => setShowModal(false)}>
+                No, cancel
+              </Button>
             </div>
           </div>
         </Modal.Body>
-        </Modal>
+      </Modal>
     </div>
   );
 };
