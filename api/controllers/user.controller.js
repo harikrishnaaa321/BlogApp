@@ -123,17 +123,17 @@ export const getUsers = async (req, res, next) => {
 export const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId);
-    console.log('1');
+
     if (!user) {
       return next(errorHandler(404, "user not found"));
     }
-    console.log('2');
+
     const { password, ...rest } = user._doc;
-    console.log('3');
+
     res.status(200).json(rest);
-    console.log('4');
+
   } catch (error) {
-    console.log('5');
+
     next(error);
   }
 };
