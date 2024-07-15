@@ -1,6 +1,6 @@
 import { Sidebar } from "flowbite-react";
 import React, { useState, useEffect } from "react";
-import { HiUser, HiArrowSmRight, HiDocumentText, HiOutlineUserGroup } from "react-icons/hi";
+import { HiUser, HiArrowSmRight, HiDocumentText, HiOutlineUserGroup, HiAnnotation, HiOutlineViewGrid, HiChartPie } from "react-icons/hi";
 import { useLocation, Link } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
@@ -36,6 +36,15 @@ const DashSidebar = () => {
     <Sidebar className="w-full md:w-36">
       <Sidebar.Items>
         <Sidebar.ItemGroup className="flex flex-col gap-1">
+          {
+            currentUser && currentUser.isAdmin &&(
+              <Link to="/dashboard?tab=dash">
+<Sidebar.Item active={tab === "dash"} icon={HiChartPie} as='div'>
+Dashboard
+</Sidebar.Item>
+</Link>
+            )
+          }
           <Link to="/dashboard?tab=profile">
             <Sidebar.Item
               active={tab === "profile"}
@@ -55,12 +64,20 @@ const DashSidebar = () => {
           </Link>
           )}
 
-            {currentUser.isAdmin && (
+            {currentUser.isAdmin && (<>
             <Link to="/dashboard?tab=users">
             <Sidebar.Item active={tab === "users"} icon={HiOutlineUserGroup} as='div'>
               users
             </Sidebar.Item>
           </Link>
+
+<Link to="/dashboard?tab=comments">
+<Sidebar.Item active={tab === "comments"} icon={HiAnnotation} as='div'>
+comments
+</Sidebar.Item>
+</Link>
+
+</>
           )}
           
 
